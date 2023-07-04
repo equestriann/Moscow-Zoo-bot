@@ -17,7 +17,7 @@ connection = psycopg2.connect(
 # Объявление переменных для викторины:
 i = 0 # Счетчик номера вопроса
 j = 1 # Счетчик сгоревших пуканов Саши
-list_id_answers = [] # С писок ответов пользователя
+list_id_answers = [] # Список ответов пользователя
 q_count = 2 # Количество вопросов в базе
 usr_id = 0
 usr_nm = 0
@@ -81,7 +81,27 @@ def please_start(call):
             list_id_answers = str(list_id_answers)[1:-1]
 
             # вывод тотемного животного
-            cursor.execute(f"Select case when a.grt = a.penguin then 'penguin' when a.grt = a.owl then 'penguin' when a.grt = a.bear then 'bear'  when a.grt = a.lori then 'lori'  when a.grt = a.irbis then 'irbis'  when a.grt = a.tiger then 'tiger'  when a.grt = a.eagle then 'eagle'  when a.grt = a.bird_sec then 'bird_sec'  when a.grt = a.vicuna then 'vicuna'  when a.grt = a.cuscus then 'cuscus'  when a.grt = a.crocodile then 'crocodile'  when a.grt = a.manul then 'manul'  when a.grt = a.seal then 'seal'  when a.grt = a.otter then 'otter'  end as animal from (select greatest(sum(penguin), sum(owl), sum(bear), sum(lori), sum(irbis), sum(tiger), sum(eagle), sum(bird_sec), sum(vicuna), sum(cuscus),   sum(crocodile), sum(manul), sum(seal), sum(otter)   ) as grt, sum(penguin) as penguin, sum(owl) as owl, sum(bear) as bear, sum(lori) as lori, sum(irbis) as irbis, sum(tiger) as tiger, sum(eagle) as eagle, sum(bird_sec) as bird_sec, sum(vicuna) as vicuna, sum(cuscus) as cuscus,  sum(crocodile) as crocodile, sum(manul) as manul, sum(seal) as seal, sum(otter) as otter from quiz where id_answer in({list_id_answers}) )a;")
+            # Две строки ниже - для масштабирования
+            # cursor.execute("select column_name from information_schema.columns where table_name = 'quiz' and ordinal_position > 5 order by ordinal_position asc")
+            # animal_list = cursor.fetchall()
+            cursor.execute(f"""Select 
+            case  
+            when a.grt = a.penguin then 'penguin' 
+            when a.grt = a.owl then 'penguin' --owl?
+            when a.grt = a.bear then 'bear'  
+            when a.grt = a.lori then 'lori'  
+            when a.grt = a.irbis then 'irbis'  
+            when a.grt = a.tiger then 'tiger'  
+            when a.grt = a.eagle then 'eagle'  
+            when a.grt = a.bird_sec then 'bird_sec'  
+            when a.grt = a.vicuna then 'vicuna'  
+            when a.grt = a.cuscus then 'cuscus'  
+            when a.grt = a.crocodile then 'crocodile'  
+            when a.grt = a.manul then 'manul'  
+            when a.grt = a.seal then 'seal'  
+            when a.grt = a.otter then 'otter'  
+            
+            end as animal from (select greatest(sum(penguin), sum(owl), sum(bear), sum(lori), sum(irbis), sum(tiger), sum(eagle), sum(bird_sec), sum(vicuna), sum(cuscus),   sum(crocodile), sum(manul), sum(seal), sum(otter)   ) as grt, sum(penguin) as penguin, sum(owl) as owl, sum(bear) as bear, sum(lori) as lori, sum(irbis) as irbis, sum(tiger) as tiger, sum(eagle) as eagle, sum(bird_sec) as bird_sec, sum(vicuna) as vicuna, sum(cuscus) as cuscus,  sum(crocodile) as crocodile, sum(manul) as manul, sum(seal) as seal, sum(otter) as otter from quiz where id_answer in({list_id_answers}) )a;""")
             find_result = str(*cursor.fetchone())
             cursor.execute(f"select result_text from animal_results where id in ('{find_result}');")
             totemic_animal = str(*cursor.fetchone())
@@ -89,7 +109,40 @@ def please_start(call):
             totemic_image = str(*cursor.fetchone())
             bot.send_photo(call.message.chat.id, totemic_image)
             bot.send_message(call.message.chat.id, totemic_animal)
+
+
+            # Кусок ниже - для масштабирования
+            # print(animal_list)
+            # an_count = len(animal_list)
+            # an = 0
+            # case_list = []
+            # sum_list = []
+            # sum_as_list = []
+            # print(an_count)
+            # while an < an_count:
+            #     case_list.append(f"when a.grt = a.{str(*animal_list[an])} then '{str(*animal_list[an])}'")
+            #     sum_list.append(f"sum({str(*animal_list[an])}), ")
+            #     sum_as_list.append(f"sum({str(*animal_list[an])}) as {str(*animal_list[an])}, ")
+            #     an += 1
+            #
+            # print(str(case_list)[1:-1])
+            # print(str(sum_list)[1:-1])
+            # print(str(sum_as_list)[1:-1])
+
+            # select while an < an_count:
+            #
+            #                 str(*animal_list[an])
+            #
+            #                 an += 1
             # bot.send_message(call.message.chat.id, text='Ты пёс, а не суетолог.') # для Даши
+            #
+            # def animal():
+            #     nonlocal an
+            #     while an < an_count:
+            #         return str(*animal_list[an]), an
+            #         an += 1
+            #
+            # an_ = animal()
 
             end_quiz(call.message)
 
@@ -129,7 +182,7 @@ def please_start(call):
         photo = 'https://cs14.pikabu.ru/post_img/big/2022/07/06/7/1657106773137619411.jpg'
         link = 'https://www.justbenice.ru/work/moscowzoo/'
         text = 'Помнишь я обещал рассказать тебе кое-что интересное?\n\n' \
-               'Так вот, зоопарк предоставляет возможность стать настоящим опекуном ' \
+               'Так вот, зоопарк предоставляет возможность стать настоящим опекуном' \
                'твоего тотемного животного😱(либо любого другого вида)\n\n' \
                'Уже долгое время действует программа "Клуб Друзей", ты можешь' \
                'почитать о ней и задать вопросы организаторам тут👇🏻'
@@ -145,10 +198,12 @@ def please_start(call):
         bot.send_message(call.message.chat.id, text=text)
 
 
-@bot.message_handler(content_types=['text'])
-def quiz_body(message : False):
 
-        with connection.cursor() as cursor:
+
+@bot.message_handler(regexp='')
+def quiz_body(message):
+
+    with connection.cursor() as cursor:
 
             # достаем максимальный id вопроса
             global i, q_count
@@ -189,6 +244,7 @@ def quiz_body(message : False):
                 markup.add(res)
                 bot.send_message(message.chat.id, results, reply_markup=markup)
 
+
 def end_quiz(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
     restart = types.InlineKeyboardButton(text='Хочу еще разочек🧐', callback_data='start_quiz')
@@ -220,6 +276,8 @@ def send_review(message):
     print(review_user_id, review_text)
     connection.commit()
 
+# Эта функция для отслежвания случайных сообщений в чат
+@bot.message_handler(content_types=['text'])
 def dont_type(message):
     if message.text:
         photo = 'https://animals.pibig.info/uploads/posts/2023-04/1680790089_animals-pibig-info-p-dikaya-koshka-manul-zhivotnie-instagram-1.jpg'
